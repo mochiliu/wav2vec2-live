@@ -116,7 +116,7 @@ class LiveWav2Vec2():
 if __name__ == "__main__":
     print("Live ASR")
 
-    asr = LiveWav2Vec2("facebook/wav2vec2-large-960h-lv60-self")
+    asr = LiveWav2Vec2("facebook/wav2vec2-large-960h-lv60-self","hw:1,7")
 
     asr.start()
 

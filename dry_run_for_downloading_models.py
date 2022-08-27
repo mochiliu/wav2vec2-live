@@ -43,6 +43,4 @@ class Wave2Vec2Inference():
     
 if __name__ == "__main__":
     print("Model test")
-    asr = Wave2Vec2Inference("oliverguhr/wav2vec2-large-xlsr-53-german-cv9")
-    text = asr.file_to_text("test.wav")
-    print(text)
+    download_model = Wave2Vec2Inference("facebook/wav2vec2-large-960h-lv60-self")

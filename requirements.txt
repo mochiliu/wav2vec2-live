@@ -10,3 +10,4 @@ onnxruntime==1.12.1
 wheel
 pyctcdecode==0.4.0
 https://github.com/kpu/kenlm/archive/master.zip
+jupyter==1.0.0
