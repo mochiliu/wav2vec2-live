@@ -9,6 +9,7 @@ from sys import exit
 import contextvars
 from queue import  Queue
 
+RATE = 16000
 
 class LiveWav2Vec2():
     exit_event = threading.Event()
@@ -41,13 +42,13 @@ class LiveWav2Vec2():
         audio = pyaudio.PyAudio()
         FORMAT = pyaudio.paInt16
         CHANNELS = 1
-        RATE = 16000
         # A frame must be either 10, 20, or 30 ms in duration for webrtcvad
         FRAME_DURATION = 30
         CHUNK = int(RATE * FRAME_DURATION / 1000)
         RECORD_SECONDS = 50
 
         microphones = LiveWav2Vec2.list_microphones(audio)
+        assert len(microphones) > 0, "microphone with appropriate sampling rate not found"
         selected_input_device_id = LiveWav2Vec2.get_input_device_id(
             device_name, microphones)
 
@@ -88,7 +89,7 @@ class LiveWav2Vec2():
             start = time.perf_counter()
             text = wave2vec_asr.buffer_to_text(float64_buffer).lower()
             inference_time = time.perf_counter()-start
-            sample_length = len(float64_buffer) / 16000  # length in sec
+            sample_length = len(float64_buffer) / RATE  # length in sec
             if text != "":
                 output_queue.put([text,sample_length,inference_time])
 
@@ -96,6 +97,7 @@ class LiveWav2Vec2():
         for device in microphones:
             if device_name in device[1]:
                 return device[0]
+        return microphones[0][0] #return the first valid microphone if device not found
 
     def list_microphones(pyaudio_instance):
         info = pyaudio_instance.get_host_api_info_by_index(0)
@@ -103,7 +105,7 @@ class LiveWav2Vec2():
 
         result = []
         for i in range(0, numdevices):
-            if (pyaudio_instance.get_device_info_by_host_api_device_index(0, i).get('maxInputChannels')) > 0:
+            if ((pyaudio_instance.get_device_info_by_host_api_device_index(0, i).get('maxInputChannels')) > 0) and ((pyaudio_instance.get_device_info_by_host_api_device_index(0, i).get('defaultSampleRate')) == RATE):
                 name = pyaudio_instance.get_device_info_by_host_api_device_index(
                     0, i).get('name')
                 result += [[i, name]]
@@ -116,7 +118,7 @@ class LiveWav2Vec2():
 if __name__ == "__main__":
     print("Live ASR")
 
-    asr = LiveWav2Vec2("facebook/wav2vec2-large-960h-lv60-self","hw:1,7")
+    asr = LiveWav2Vec2("facebook/wav2vec2-large-960h-lv60-self")
 
     asr.start()
 
